@@ -1,2 +1,2 @@
-# cryptography
+# Crypto
 SDU course
