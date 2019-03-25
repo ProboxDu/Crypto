@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+    Supported ECB.
+    No padding, that is key, plain text and cipher text must be a multiply of 16 bytes.
+"""
 from __future__ import print_function
 
 SBOX = (
