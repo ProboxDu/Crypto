@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    Supported ECB and zeropadding.
+    Supported ECB.
+    No padding, that is plain text and cipher text must be a multiply of 8.
     key -> Bytes containing the encryption key. 8 bytes for DES, 16 or 24 bytes for Triple DES
 """
 from __future__ import print_function
