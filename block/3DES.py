@@ -49,9 +49,9 @@ def bits_to_str( bits ):
 def bits_xor(l, r):
     return map(lambda (x, y):x ^ y, zip(l, r))
 
-def F(hblk, subkey):
+def F(hblk, roundkey):
     bits = [hblk[x - 1] for x in E]
-    bits = bits_xor(bits, subkey)
+    bits = bits_xor(bits, roundkey)
     ret = []
     for i in range(0, len(bits), 6):
         # Work out the offsets
@@ -63,29 +63,29 @@ def F(hblk, subkey):
     ret = [ret[x - 1] for x in P]
     return ret
 
-def gen_subkey(key):
+def gen_roundkey(key):
     kbits = str_to_bits(key)
     kbits = [kbits[x - 1] for x in PC_1]
     left = kbits[:28]
     right = kbits[28:]
-    subkeys = []
+    roundkeys = []
     for i in range(ROUNDS):
         left = left[R[i]:] + left[:R[i]]
         right = right[R[i]:] + right[:R[i]]
         cur = left + right
-        subkeys.append([cur[x - 1] for x in PC_2])
-    if subkeys[0] == subkeys[1] or subkeys[0] == subkeys[2]:
+        roundkeys.append([cur[x - 1] for x in PC_2])
+    if roundkeys[0] == roundkeys[1] or roundkeys[0] == roundkeys[2]:
         raise Exception("Boom")
-    return subkeys
+    return roundkeys
 
-def encrypt_block(block, subkeys):
+def encrypt_block(block, roundkeys):
     assert len(block) == 8
     bits = str_to_bits(block)
     bits = [bits[x - 1] for x in IP]
     for i in range(ROUNDS):
         left = bits[:32]
         right = bits[32:]
-        left = bits_xor(left, F(right, subkeys[i]))
+        left = bits_xor(left, F(right, roundkeys[i]))
         bits = right + left
     bits = left + right
     bits = [bits[x - 1] for x in IP_1]
@@ -93,21 +93,21 @@ def encrypt_block(block, subkeys):
 
 def encrypt(plain_text, key):
     assert len(plain_text) % 8 == 0
-    subkeys = gen_subkey(key)
+    roundkeys = gen_roundkey(key)
     cipher_text = ''
     l = len(plain_text)
     for i in range(0, l, 8):
-        cipher_text += encrypt_block(plain_text[i:i + 8], subkeys)
+        cipher_text += encrypt_block(plain_text[i:i + 8], roundkeys)
     return cipher_text
 
-def decrypt_block(block, subkeys):
+def decrypt_block(block, roundkeys):
     assert len(block) == 8
     bits = str_to_bits(block)
     bits = [bits[x - 1] for x in IP]
     for i in range(ROUNDS):
         left = bits[:32]
         right = bits[32:]
-        left = bits_xor(left, F(right, subkeys[ROUNDS - 1 - i]))
+        left = bits_xor(left, F(right, roundkeys[ROUNDS - 1 - i]))
         bits = right + left
     bits = left + right
     bits = [bits[x - 1] for x in IP_1]
@@ -115,11 +115,11 @@ def decrypt_block(block, subkeys):
 
 def decrypt(cipher_text, key):
     assert len(cipher_text) % 8 == 0
-    subkeys = gen_subkey(key)
+    roundkeys = gen_roundkey(key)
     plain_text = ''
     l = len(cipher_text)
     for i in range(0, l, 8):
-        plain_text += decrypt_block(cipher_text[i:i + 8], subkeys)
+        plain_text += decrypt_block(cipher_text[i:i + 8], roundkeys)
     return plain_text
 
 def DES_test(plain_text, key):
