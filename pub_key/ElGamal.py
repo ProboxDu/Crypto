@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-    RSA test
-    No padding, just a test
-"""
+
 from __future__ import print_function
 import math
 import random
@@ -97,23 +94,33 @@ def gen_prime(size, k = 25):
         if prime_test(n, k):
             return n
     return 
-        
+    
+def find_primitive_root(p):
+    assert p > 2 # odd prime 
+    p1 = 2
+    p2 = (p - 1) // p1
+    while True:
+        g = random.randrange(2, p)
+        if not (pow(g, (p - 1) // p1, p) == 1):
+            if not (pow(g, (p - 1) // p2, p) == 1):
+                return g
 
 def gen_key(size):
     p = gen_prime(size)
-    q = gen_prime(size)
+    alpha = find_primitive_root(p)
+    alpha = pow(alpha, 2, p)
+    x = random.randrange(0, p - 1)
+    beta = pow(alpha, x, p)
+    return [(p, alpha, beta), (p, x)]
 
-    e = 65537
-    n = p * q
-    phi = (p - 1) * (q - 1)
-    d = mod_inverse(e, phi)
-    return [(e, n), (d, n)]
+def encrypt(plain_text, (p, alpha, beta)):
+    r = random.randrange(0, p - 1)
+    y1 = pow(alpha, r, p)
+    y2 = plain_text * pow(beta, r, p) % p
+    return (y1, y2)
 
-def encrypt(plain_text, (e, n)):
-    return pow(plain_text, e, n)
-
-def decrypt(cipher_text, (d, n)):
-    return pow(cipher_text, d, n)
+def decrypt((y1, y2), (p, x)): 
+    return y2 * mod_inverse(pow(y1, x, p), p) % p
 
 if __name__ == "__main__":
     init()
