@@ -118,7 +118,7 @@ def decrypt(cipher_text, (d, n)):
 if __name__ == "__main__":
     init()
     plain_text = 21254548484846484964598419498498
-    public_key, private_key = gen_key(128) 
+    public_key, private_key = gen_key(512) 
     print(public_key)
     print(private_key)
     cipher_text = encrypt(plain_text, public_key)
