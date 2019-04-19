@@ -96,7 +96,8 @@ def gen_prime(size, k = 25):
     return 
     
 def find_primitive_root(p):
-    assert p > 2 # odd prime 
+    if p == 2:
+        return 1
     p1 = 2
     p2 = (p - 1) // p1
     while True:
@@ -108,7 +109,7 @@ def find_primitive_root(p):
 def gen_key(size):
     p = gen_prime(size)
     alpha = find_primitive_root(p)
-    alpha = pow(alpha, 2, p)
+    #alpha = pow(alpha, 2, p)
     x = random.randrange(0, p - 1)
     beta = pow(alpha, x, p)
     return [(p, alpha, beta), (p, x)]
