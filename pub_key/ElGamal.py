@@ -102,14 +102,13 @@ def find_primitive_root(p):
     p2 = (p - 1) // p1
     while True:
         g = random.randrange(2, p)
-        if not (pow(g, (p - 1) // p1, p) == 1):
-            if not (pow(g, (p - 1) // p2, p) == 1):
+        if not (pow(g, p1, p) == 1):
+            if not (pow(g, p2, p) == 1):
                 return g
 
 def gen_key(size):
     p = gen_prime(size)
     alpha = find_primitive_root(p)
-    #alpha = pow(alpha, 2, p)
     x = random.randrange(0, p - 1)
     beta = pow(alpha, x, p)
     return [(p, alpha, beta), (p, x)]
