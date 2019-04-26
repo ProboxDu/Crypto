@@ -122,6 +122,19 @@ def encrypt(plain_text, (p, alpha, beta)):
 def decrypt((y1, y2), (p, x)): 
     return y2 * mod_inverse(pow(y1, x, p), p) % p
 
+def signature(m, (p, g, y), (_, d)):
+    k = random.randrange(0, p - 1)
+    r = pow(g, k, p)
+    s = ((m - d * r) * mod_inverse(k, p - 1)) % (p - 1)
+    return (r, s)
+
+def validate(m, (p, g, y), (r, s)):
+    t1 = pow(g, m, p)
+    t2 = (pow(y, r, p) % p) * (pow(r, s, p) % p) % p
+    if t1 == t2:
+        return True
+    return False
+
 if __name__ == "__main__":
     init()
     plain_text = 2125454848484648496459841949849845
@@ -133,3 +146,7 @@ if __name__ == "__main__":
 
     plain_text = decrypt(cipher_text, private_key)
     print("Decrypt text: ", plain_text)
+
+    sign = signature(plain_text, public_key, private_key)
+    print(sign)
+    print(validate(plain_text, public_key, sign))
