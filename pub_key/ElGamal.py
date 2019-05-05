@@ -124,6 +124,8 @@ def decrypt((y1, y2), (p, x)):
 
 def signature(m, (p, g, y), (_, d)):
     k = random.randrange(0, p - 1)
+    while (gcd(k, p - 1) != 1):
+        k = random.randrange(0, p - 1)
     r = pow(g, k, p)
     s = ((m - d * r) * mod_inverse(k, p - 1)) % (p - 1)
     return (r, s)
