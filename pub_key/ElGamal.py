@@ -108,15 +108,15 @@ def find_primitive_root(p):
 
 def gen_key(size):
     p = gen_prime(size)
-    alpha = find_primitive_root(p)
+    g = find_primitive_root(p)
     x = random.randrange(0, p - 1)
-    beta = pow(alpha, x, p)
-    return [(p, alpha, beta), (p, x)]
+    y = pow(g, x, p)
+    return [(p, g, y), (p, x)]
 
-def encrypt(plain_text, (p, alpha, beta)):
+def encrypt(m, (p, g, y)):
     r = random.randrange(0, p - 1)
-    y1 = pow(alpha, r, p)
-    y2 = plain_text * pow(beta, r, p) % p
+    y1 = pow(g, r, p)
+    y2 = m * pow(y, r, p) % p
     return (y1, y2)
 
 def decrypt((y1, y2), (p, x)): 
