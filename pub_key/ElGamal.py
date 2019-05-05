@@ -141,6 +141,7 @@ if __name__ == "__main__":
     public_key, private_key = gen_key(512) 
     print(public_key)
     print(private_key)
+    
     cipher_text = encrypt(plain_text, public_key)
     print("Encrypt text: ", cipher_text)
 
