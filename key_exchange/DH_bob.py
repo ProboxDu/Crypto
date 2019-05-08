@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 
-from __future__ import print_function
 import socket
 import random
 
@@ -12,18 +10,18 @@ def diffie_hellman_bob():
         print(msg)
         exit(1)
     #p & g
-    p = int(sock.recv(1024))
-    g = int(sock.recv(1024))
+    p = int(sock.recv(1024).decode())
+    g = int(sock.recv(1024).decode())
     print(p, g)
     b = random.randrange(0, p)
     print('Bob gen random b: ', b)
 
-    A = int(sock.recv(1024)) 
+    A = int(sock.recv(1024).decode()) 
     print('Bob recv A: ', A)
 
     B = pow(g, b, p)
     print('Bob send B -> alice: ', B)
-    sock.sendall(str(B))
+    sock.sendall(str(B).encode())
     sock.close()
 
     return pow(A, b, p)

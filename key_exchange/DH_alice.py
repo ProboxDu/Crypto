@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 
-from __future__ import print_function
 import socket
 import math
 import random
 import operator
+from functools import reduce
 
 _small_primes_product = 1
 _primes_bits = [[] for i in range(11)]
@@ -122,12 +121,12 @@ def diffie_hellman_alice(p, g):
     print('Alice gen random a: ', a)
     A = pow(g, a, p)
     #p & g
-    client.sendall(str(p))
-    client.sendall(str(g))  #注意连发3个可能粘包
+    client.sendall(str(p).encode())
+    client.sendall(str(g).encode())  #注意连发3个可能粘包
 
     print('Alice send A -> bob: ', A)
-    client.sendall(str(A))
-    B = int(client.recv(1024))
+    client.sendall(str(A).encode())
+    B = int(client.recv(1024).decode())
     print('Alice recv B: ', B)
     client.close()
     sock.close()

@@ -1,62 +1,51 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import print_function
 import socket
-import random
+from ElGamal_key import *
 
-def ex_gcd(a, b):
-    if b == 0:
-        return a, 1, 0
-    ret, x, y = ex_gcd(b, a % b)
-    return ret, y, x - a // b * y
-
-def mod_inverse(a, b):
-    g, x, _ = ex_gcd(a, b)
-    assert g == 1
-    return (x + b) % b
-
-def decrypt((y1, y2), (p, x)): 
-    return y2 * mod_inverse(pow(y1, x, p), p) % p
-
-def validate(m, (p, g, y), (r, s)):
-    t1 = pow(g, m, p)
-    t2 = (pow(y, r, p) % p) * (pow(r, s, p) % p) % p
-    if t1 == t2:
-        return True
-    return False
-
-def elgamal_bob():
+def elgamal_bob(public_key1, private_key1, public_key2, private_key2):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((socket.gethostname(), 9999))
     except socket.error as msg:
         print(msg)
         exit(1)
-    #p & g
-    p = int(sock.recv(1024))
-    g = int(sock.recv(1024))
+    #DH p & g
+
+    p = int(sock.recv(1024).decode())
+    g = int(sock.recv(1024).decode())
+    print('Diffie-Hellman p & g:')
     print(p, g)
 
-    x = int(sock.recv(1024)) 
-    print('Bob recv x: ', x)
-    y = pow(g, x, p)
+    #Recv, Decrypted & Validate A
+    y1 = int(sock.recv(1024).decode())
+    y2 = int(sock.recv(1024).decode())
+    print('Recv encrypted message:')
+    print(y1, y2)
+    sy1 = int(sock.recv(1024).decode())
+    sy2 = int(sock.recv(1024).decode())
+    print('Recv signature message:')
+    print(sy1, sy2)
+    A = decrypt((y1, y2), private_key1)
+    assert (validate(A, public_key2, (sy1, sy2)))
+
+    b = random.randrange(0, p)
+    print('Bob gen random b: ', b)
+    B = pow(g, b, p)
+
+    #Send, Encrypted & Signed B
+    y1, y2 = encrypt(B, public_key1)
+    sock.sendall(str(y1).encode())
+    sock.sendall(str(y2).encode())
+    print("Encrypted message:")
+    print(y1, y2)
+    sy1, sy2 = signature(B, public_key2, private_key2)
+    sock.sendall(str(sy1).encode())
+    sock.sendall(str(sy2).encode())
+    print("Signature message:")
+    print(sy1, sy2)
     
-    while True:
-        y1 = int(sock.recv(1024))
-        y2 = int(sock.recv(1024))
-        print('Recv encrypted message:')
-        print(y1, y2)
-        m = decrypt((y1, y2), (p, x))
-        sy1 = int(sock.recv(1024))
-        sy2 = int(sock.recv(1024))
-        print('Recv signature message:')
-        print(sy1, sy2)
-        if validate(m, (p, g, y), (sy1, sy2)):
-            print('Decrypted & validated message:')
-            print(m)
-        else:
-            print('validate error.')
     sock.close()
+    return pow(A, b, p)
 
 if __name__ == "__main__":
-    elgamal_bob()
+    Kb = elgamal_bob(public_key1, private_key1, public_key2, private_key2)
+    print('Bob compute Kb = pow(A, b, p) :', Kb)

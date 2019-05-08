@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function
-
 
 def encrypt(plain_text, key):
     m = len(plain_text)
@@ -16,11 +13,10 @@ def encrypt(plain_text, key):
 
     return ret
 
-
 def decrypt(cipher_text, key):
     m = len(cipher_text)
     n = len(key)
-    q = m // n;
+    q = m // n
     ret = ""
 
     for i in range(0, q):
@@ -34,10 +30,9 @@ def decrypt(cipher_text, key):
 
     return ret
 
-
 if __name__ == "__main__":
-    plain_text = raw_input("Please input the plain text : ")
-    key = raw_input("Please input the key : ")
+    plain_text = input("Please input the plain text : ")
+    key = input("Please input the key : ")
 
     cipher_text = encrypt(plain_text, key)
     print("Encrypt text: ", cipher_text)
