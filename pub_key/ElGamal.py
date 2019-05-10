@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 
-from __future__ import print_function
 import math
 import random
 import operator
+from functools import reduce
 
 _small_primes_product = 1
 _primes_bits = [[] for i in range(11)]
@@ -113,24 +112,31 @@ def gen_key(size):
     y = pow(g, x, p)
     return [(p, g, y), (p, x)]
 
-def encrypt(m, (p, g, y)):
+def encrypt(m, public_key):
+    p, g, y = public_key
     r = random.randrange(0, p - 1)
     y1 = pow(g, r, p)
     y2 = m * pow(y, r, p) % p
     return (y1, y2)
 
-def decrypt((y1, y2), (p, x)): 
+def decrypt(cipher_text, private_key):
+    y1, y2 = cipher_text
+    p, x = private_key
     return y2 * mod_inverse(pow(y1, x, p), p) % p
 
-def signature(m, (p, g, y), (_, d)):
+def signature(m, public_key, private_key):
+    p, g, y = public_key
+    _, x = private_key
     k = random.randrange(0, p - 1)
     while (gcd(k, p - 1) != 1):
         k = random.randrange(0, p - 1)
     r = pow(g, k, p)
-    s = ((m - d * r) * mod_inverse(k, p - 1)) % (p - 1)
+    s = ((m - x * r) * mod_inverse(k, p - 1)) % (p - 1)
     return (r, s)
 
-def validate(m, (p, g, y), (r, s)):
+def validate(m, public_key, cipher_text):
+    p, g, y = public_key
+    r, s = cipher_text
     t1 = pow(g, m, p)
     t2 = (pow(y, r, p) % p) * (pow(r, s, p) % p) % p
     if t1 == t2:

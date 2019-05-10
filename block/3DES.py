@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 """
     Supported ECB.
     No padding, that is plain text and cipher text must be a multiply of 8 bytes.
     key -> Bytes containing the encryption key. 8 bytes for DES, 16 or 24 bytes for Triple DES
 """
-from __future__ import print_function
 
 ROUNDS = 16
 
@@ -24,31 +22,22 @@ PC_2 = [14, 17, 11, 24, 1, 5, 3, 28, 15, 6, 21, 10, 23, 19, 12, 4, 26, 8, 16, 7,
 
 R = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1]
 
-
 #Turn the string data, into a list of bits
-def char_to_bits( ch ):
-    ret = bin(ord(ch))[2:]
-    return map(int, list(ret.rjust(8, '0')))
-
-def str_to_bits( st ):
+def bytes_to_bits( st ):
     ret = []
     for ch in st:
-        ret.extend(char_to_bits(ch))
+        ret.extend(map(int, list((bin(ch)[2:]).rjust(8, '0'))))
     return ret
 
 # Turn the list of bits , into a string
-def bits_to_chr( bits ):
-    ret = int(''.join(map(str, bits)), 2)
-    return chr(ret)
-
-def bits_to_str( bits ):
-    ret = ""
+def bits_to_bytes( bits ):
+    ret = b''
     for i in range(0, len(bits), 8):
-        ret += bits_to_chr(bits[i:i + 8])
+        ret += bytes([int(''.join(map(str, bits[i:i + 8])), 2)])
     return ret
 
 def bits_xor(l, r):
-    return map(lambda (x, y):x ^ y, zip(l, r))
+    return list(map(lambda x, y:x ^ y, l, r))
 
 def F(hblk, roundkey):
     bits = [hblk[x - 1] for x in E]
@@ -59,13 +48,13 @@ def F(hblk, roundkey):
         row = (bits[i] << 1) + bits[i + 5]
         col = (bits[i + 1] << 3) + (bits[i + 2] << 2) + (bits[i + 3] << 1) + bits[i + 4]
         
-        val = bin(SBOX[i / 6][row][col])[2:]
+        val = bin(SBOX[i // 6][row][col])[2:]
         ret.extend(map(int, list(val.rjust(4, '0'))))
     ret = [ret[x - 1] for x in P]
     return ret
 
 def gen_roundkey(key):
-    kbits = str_to_bits(key)
+    kbits = bytes_to_bits(key)
     kbits = [kbits[x - 1] for x in PC_1]
     left = kbits[:28]
     right = kbits[28:]
@@ -81,7 +70,7 @@ def gen_roundkey(key):
 
 def encrypt_block(block, roundkeys):
     assert len(block) == 8
-    bits = str_to_bits(block)
+    bits = bytes_to_bits(block)
     bits = [bits[x - 1] for x in IP]
     for i in range(ROUNDS):
         left = bits[:32]
@@ -90,12 +79,12 @@ def encrypt_block(block, roundkeys):
         bits = right + left
     bits = left + right
     bits = [bits[x - 1] for x in IP_1]
-    return bits_to_str(bits)
+    return bits_to_bytes(bits)
 
 def encrypt(plain_text, key):
     assert len(plain_text) % 8 == 0
     roundkeys = gen_roundkey(key)
-    cipher_text = ''
+    cipher_text = b''
     l = len(plain_text)
     for i in range(0, l, 8):
         cipher_text += encrypt_block(plain_text[i:i + 8], roundkeys)
@@ -103,7 +92,7 @@ def encrypt(plain_text, key):
 
 def decrypt_block(block, roundkeys):
     assert len(block) == 8
-    bits = str_to_bits(block)
+    bits = bytes_to_bits(block)
     bits = [bits[x - 1] for x in IP]
     for i in range(ROUNDS):
         left = bits[:32]
@@ -112,12 +101,12 @@ def decrypt_block(block, roundkeys):
         bits = right + left
     bits = left + right
     bits = [bits[x - 1] for x in IP_1]
-    return bits_to_str(bits)
+    return bits_to_bytes(bits)
 
 def decrypt(cipher_text, key):
     assert len(cipher_text) % 8 == 0
     roundkeys = gen_roundkey(key)
-    plain_text = ''
+    plain_text = b''
     l = len(cipher_text)
     for i in range(0, l, 8):
         plain_text += decrypt_block(cipher_text[i:i + 8], roundkeys)
@@ -125,14 +114,14 @@ def decrypt(cipher_text, key):
 
 def DES_test(plain_text, key):
 
-    plain_text = plain_text.decode('hex')
-    key = key.decode('hex')
+    plain_text = bytes.fromhex(plain_text)
+    key = bytes.fromhex(key)
     
     cipher_text = encrypt(plain_text, key)
-    print("DES encrypt text: ", cipher_text.encode('hex'))
+    print("DES encrypt text: ", cipher_text.hex())
 
     plain_text = decrypt(cipher_text, key)
-    print("DES decrypt text: ", plain_text.encode('hex'))
+    print("DES decrypt text: ", plain_text.hex())
 
 """
     Triple DES is just running the DES algorithm 3 times over the data with the specified key. 
@@ -151,7 +140,7 @@ def DES_test(plain_text, key):
 def triple_DES_test(plain_text, key):
     assert len(key) in (8, 16, 24)
 
-    print("Your plain text in hexadecimal: ", plain_text.encode('hex'))
+    print("Your plain text in hexadecimal: ", plain_text.hex())
 
     key1 = key[:8]
     if len(key) > 8:
@@ -163,9 +152,9 @@ def triple_DES_test(plain_text, key):
     else:
         key3 = key1
     cipher_text = encrypt(decrypt(encrypt(plain_text, key1), key2), key3)
-    print("Triple DES encrypt text: ", cipher_text.encode('hex'))
+    print("Triple DES encrypt text: ", cipher_text.hex())
     plain_text = decrypt(encrypt(decrypt(cipher_text, key3), key2), key1)
-    print("Triple DES decrypt text: ", plain_text.encode('hex'))
+    print("Triple DES decrypt text: ", plain_text.hex())
 
 if __name__ == "__main__":
     # An example on a textbook
@@ -174,6 +163,6 @@ if __name__ == "__main__":
     DES_test(plain_text, key);
     #plain_text = raw_input("Please input the plain text : ")
     #key = raw_input("Please input the key : ")
-    plain_text = "abcdefgh"
-    key = "qwertyuiasdfghjk"
+    plain_text = b"abcdefgh"
+    key = b"qwertyuiasdfghjk"
     triple_DES_test(plain_text, key)

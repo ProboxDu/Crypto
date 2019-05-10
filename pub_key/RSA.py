@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 """
     RSA test
     No padding, just a test
 """
-from __future__ import print_function
 import math
 import random
 import operator
+from functools import reduce
 
 _small_primes_product = 1
 _primes_bits = [[] for i in range(11)]
@@ -109,10 +108,12 @@ def gen_key(size):
     d = mod_inverse(e, phi)
     return [(e, n), (d, n)]
 
-def encrypt(plain_text, (e, n)):
+def encrypt(plain_text, public_key):
+    e, n = public_key
     return pow(plain_text, e, n)
 
-def decrypt(cipher_text, (d, n)):
+def decrypt(cipher_text, private_key):
+    d, n = private_key
     return pow(cipher_text, d, n)
 
 if __name__ == "__main__":

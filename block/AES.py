@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
+
 """
     Supported ECB.
     No padding, that is key, plain text and cipher text must be a multiply of 16 bytes.
 """
-from __future__ import print_function
 
 SBOX = (
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
@@ -54,22 +53,22 @@ RCON = (
 )
 
 # Turn the string data, into matrix [4, 4]
-def str_to_matrix( data ):
+def bytes_to_matrix( data ):
     ret = []
     for i in range(16):
-        byte = ord(data[i])
+        byte = int(data[i])
         if i % 4 == 0:
             ret.append([byte])
         else:
-            ret[i / 4].append(byte)
+            ret[i // 4].append(byte)
     return ret
 
 # Turn the  matrix [4, 4], into string data
-def matrix_to_str( data ):
-    ret = ''
+def matrix_to_bytes( data ):
+    ret = b''
     for i in range(4):
         for j in range(4):
-            ret += chr(data[i][j])
+            ret += bytes([data[i][j]])
     return ret
 
 #Substitute Bytes
@@ -119,11 +118,11 @@ def inv_mix_columns( s ):
 
 #Generate Round Key
 def gen_round_key( key ):
-    ret = str_to_matrix(key)
+    ret = bytes_to_matrix(key)
     for i in range(4, 4 * 11):
         ret.append([])
         if i % 4 == 0:
-            byte = ret[i - 4][0] ^ SBOX[ret[i - 1][1]] ^ RCON[i / 4]
+            byte = ret[i - 4][0] ^ SBOX[ret[i - 1][1]] ^ RCON[i // 4]
             ret[i].append(byte)
             for j in range(1, 4):
                 byte = ret[i - 4][j] ^ SBOX[ret[i - 1][(j + 1) % 4]]
@@ -142,8 +141,8 @@ def add_round_key(s, key):
 
 def encrypt_block(block, roundkeys):
     assert len(block) == 16
-    plain_state = str_to_matrix(block)
-    
+    plain_state = bytes_to_matrix(block)
+
     add_round_key(plain_state, roundkeys[:4])
     for i in range(1, 10):
         sub_bytes(plain_state)
@@ -154,13 +153,13 @@ def encrypt_block(block, roundkeys):
     sub_bytes(plain_state)
     shift_rows(plain_state)
     add_round_key(plain_state, roundkeys[40:])
-
-    return matrix_to_str(plain_state)
+    
+    return matrix_to_bytes(plain_state)
 
 def encrypt(plain_text, key):
     assert len(plain_text) % 16 == 0
     roundkeys = gen_round_key(key)
-    cipher_text = ''
+    cipher_text = b''
     l = len(plain_text)
     for i in range(0, l, 16):
         cipher_text += encrypt_block(plain_text[i:i + 16], roundkeys)
@@ -168,7 +167,7 @@ def encrypt(plain_text, key):
 
 def decrypt_block(block, roundkeys):
     assert len(block) == 16
-    cipher_state = str_to_matrix(block)
+    cipher_state = bytes_to_matrix(block)
 
     add_round_key(cipher_state, roundkeys[40:])
     inv_shift_rows(cipher_state)
@@ -182,12 +181,12 @@ def decrypt_block(block, roundkeys):
 
     add_round_key(cipher_state, roundkeys[:4])
 
-    return matrix_to_str(cipher_state)
+    return matrix_to_bytes(cipher_state)
 
 def decrypt(cipher_text, key):
     assert len(cipher_text) % 16 == 0
     roundkeys = gen_round_key(key)
-    plain_text = ''
+    plain_text = b''
     l = len(cipher_text)
     for i in range(0, l, 16):
         plain_text += decrypt_block(cipher_text[i:i + 16], roundkeys)
@@ -197,11 +196,10 @@ if __name__ == "__main__":
     #plain_text = raw_input("Please input the plain text : ")
     #key = raw_input("Please input the key : ")
     #An example on a book
-    plain_text = "0123456789abcdeffedcba9876543210".decode('hex')
-    key = "0f1571c947d9e8590cb7add6af7f6798".decode('hex')
-    
+    plain_text = bytes.fromhex("0123456789abcdeffedcba9876543210")
+    key = bytes.fromhex("0f1571c947d9e8590cb7add6af7f6798")
     cipher_text = encrypt(plain_text, key)
-    print("Encrypt text: ", cipher_text.encode('hex'))
+    print("Encrypt text: ", cipher_text.hex())
 
     plain_text = decrypt(cipher_text, key)
-    print("Decrypt text: ", plain_text.encode('hex'))
+    print("Decrypt text: ",plain_text.hex())
