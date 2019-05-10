@@ -2,7 +2,7 @@
 def encrypt(plain_text, key):
     m = len(plain_text)
     n = len(key)
-    q = m // n;
+    q = m // n
     ret = ""
 
     for i in range(0, q):
