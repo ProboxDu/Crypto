@@ -7,4 +7,6 @@
   
   Python 3.7.3
 
+hash/SHA3.py有问题，请参考hash/Keccak.py
+
 有问题欢迎联系我
